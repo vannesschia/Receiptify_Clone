@@ -90,7 +90,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Installation
 
-1. Create a Spotify For Developers at [https://developer.spotify.com/](https://developer.spotify.com/)
+1. Create a Spotify For Developers account at [https://developer.spotify.com/](https://developer.spotify.com/)
 2. Create an app through the Dashboard
 3. Update "Redirect URI" with your local host
 4. Clone the repo

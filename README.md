@@ -146,7 +146,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Vanness Chia - [@linkedlin](www.linkedin.com/in/vannesschia) - vannesschia@gmail.com
+Vanness Chia - [@linkedlin](https://www.linkedin.com/in/vannesschia) - vannesschia@gmail.com
 
 Project Link: [https://github.com/vannesschia/receiptify_clone](https://github.com/vannesschia/receiptify_clone)
 

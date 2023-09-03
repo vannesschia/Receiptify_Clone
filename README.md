@@ -109,7 +109,7 @@ To get a local copy up and running follow these simple example steps.
    ```
 6. Create a .env file within the root directoy, and enter your Client Key.
    ```js
-   const REACT_APP_API_KEY = 'ENTER YOUR CLIENT KEY HERE';
+   REACT_APP_API_KEY = 'ENTER YOUR CLIENT KEY HERE';
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

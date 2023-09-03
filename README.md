@@ -17,7 +17,6 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
   -->
-  <iframe src="https://giphy.com/embed/l2JdUHR6R9YtjstP2" width="430" height="310" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/season-10-the-simpsons-10x14-l2JdUHR6R9YtjstP2">via GIPHY</a></p>
 
 <h3 align="center">Receiptify Clone</h3>
 

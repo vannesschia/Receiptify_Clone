@@ -58,10 +58,10 @@
 ## About The Project
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
-<div style="display: flex; justify-content: center; text-align: center;">
-  <img src="public/screenshot3.png" alt="screenshot_last_month" height="420">
-  <img src="public/screenshot1.png" alt="screenshot_last_6_month" height="420">
-  <img src="public/screenshot2.png" alt="screenshot_all_time" height="420">
+<div align="center" style="display: flex; justify-content: space-between;">
+  <img src="public/screenshot3.png" alt="screenshot_last_month" height="550">
+  <img src="public/screenshot1.png" alt="screenshot_last_6_month" height="550">
+  <img src="public/screenshot2.png" alt="screenshot_all_time" height="550">
 </div>
 
 Using calls to the Spotify Web API, Receiptify Clone is able to form a user's top played songs from the last month, last 6 month, or of all time into a concise format resembling a receipt. 

@@ -24,7 +24,7 @@
     A web app built with Spotify Web API to show user’s top played songs over different time spans
     <br />
     <br />
-    <a href="https://github.com/github_username/repo_name">View Demo</a>
+    <a href="https://www.youtube.com/watch?v=qhm728eHWzA&feature=youtu.be">View Demo</a>
   </p>
 </div>
 

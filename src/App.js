@@ -10,21 +10,38 @@ function App() {
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [token, setToken] = useState("");
-  const [topShortItems, setTopShortItems] = useState([]);
-  const [topMedItems, setTopMedItems] = useState([]);
-  const [topLongItems, setTopLongItems] = useState([]);
-  const [topItems, setTopItems] = useState([]);
+  const [selectedValue, setSelectedValue] = useState(0);
   const [profile, setProfile] = useState("");
-  const [timeValue, setTimeValue] = useState("");
-  const [orderNum, setOrderNum] = useState("");
   const [currDate, setCurrDate] = useState("");
-  const [shortDur, setShortDur] = useState("");
-  const [medDur, setMedDur] = useState("");
-  const [longDur, setLongDur] = useState("");
-  const [currDur, setCurrDur] = useState("");
+  const [topShortItems, setTopShortItems] = useState({
+    timeValue: "LAST MONTH",
+    orderNum: "0001",
+    topItems: [],
+    currDur: "",
+  });
+  const [topMedItems, setTopMedItems] = useState({
+    timeValue: "LAST 6 MONTHS",
+    orderNum: "0002",
+    topItems: [],
+    currDur: "",
+  });
+  const [topLongItems, setTopLongItems] = useState({
+    timeValue: "ALL TIME",
+    orderNum: "0003",
+    topItems: [],
+    currDur: "",
+  });
+  const [selectedItems, setSelectedItems] = useState({
+    timeValue: "",
+    orderNum: "",
+    topItems: [],
+    currDur: "",
+  });
 
-  //Calculates the Total Time Duration for all songs
+  //Calculates the total time duration for all songs
   const getTotalDuration = (arr) => {
     let totalDur = 0;
     arr.map((item) => {
@@ -33,6 +50,24 @@ function App() {
     var min = ~~(totalDur / 60000);
     var seconds = (((totalDur % 60000) / 1000).toFixed(0) < 10 ? '0' : '') + ((totalDur % 60000) / 1000).toFixed(0);
     return min + ":" + seconds;
+  }
+
+  //Logout
+  const logout = () => {
+    setToken("")
+    window.localStorage.removeItem("token")
+    setSelectedValue(1);
+    setSelectedItems([]);
+    window.localStorage.removeItem('checked');
+  }
+
+  //Displays current date in a specific way
+  const getDate = () => {
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"];
+    const weekNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const d = new Date();
+    setCurrDate(monthNames[d.getMonth()] + ", " + weekNames[d.getDay()] + " " + d.getDate() + ", " + d.getFullYear());
   }
 
   //Data Fetching
@@ -47,220 +82,189 @@ function App() {
       window.localStorage.setItem("token", token)
     }
 
-    if (!window.localStorage.getItem('initial') || !window.localStorage.getItem('checked')) {
-      window.localStorage.setItem('initial', '1');
-      window.localStorage.setItem('checked', '1');
-    }
-
     setToken(token);
     getDate();
-
+    
     if (token && token !== "") {
-      axios.get("https://api.spotify.com/v1/me/top/tracks", {
-        headers: {
-          Authorization: 'Bearer ' + token,
-        },
-        params: {
-          time_range: 'short_term',
-          limit: 10,
-          offset: 0
-        }
-      })
-        .then((data) => {
-          console.log(data.data.items);
-          setTopShortItems(data.data.items);
-          setShortDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-          //depending on radtion button selected before login, requested info will be displayed after login
-          if (window.localStorage.getItem('initial') === '1') {
-            console.log('1');
-            setTopItems(data.data.items);
-            setTimeValue("LAST MONTH");
-            setCurrDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-            setOrderNum("#0001");
-            window.localStorage.removeItem('checked');
-            window.localStorage.removeItem('initial');
+      setIsLoading(true);
+      axios.all([
+        axios.get("https://api.spotify.com/v1/me/top/tracks", {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+          params: {
+            time_range: 'short_term',
+            limit: 10,
+            offset: 0
           }
-        })
-        .catch((error) => {
-          console.log(error);
+        }),
+        axios.get("https://api.spotify.com/v1/me/top/tracks", {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+          params: {
+            time_range: 'medium_term',
+            limit: 10,
+            offset: 0
+          }
+        }),
+        axios.get("https://api.spotify.com/v1/me/top/tracks", {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+          params: {
+            time_range: 'long_term',
+            limit: 10,
+            offset: 0
+          }
+        }),
+        axios.get("https://api.spotify.com/v1/me", {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+        }),
+      ])
+      .then(axios.spread((data1, data2, data3, data4) => {
+        // Fetch short term data
+        setTopShortItems({
+          ...topShortItems,
+          topItems: data1.data.items,
+          currDur: getTotalDuration(data1.data.items.map((item) => item.duration_ms)),
         })
 
-      axios.get("https://api.spotify.com/v1/me/top/tracks", {
-        headers: {
-          Authorization: 'Bearer ' + token,
-        },
-        params: {
-          time_range: 'medium_term',
-          limit: 10,
-          offset: 0
-        }
-      })
-        .then((data) => {
-          console.log(data.data.items);
-          setTopMedItems(data.data.items);
-          setMedDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-          if (window.localStorage.getItem('initial') === '2') {
-            console.log('2');
-            setTopItems(data.data.items);
-            setTimeValue("LAST 6 MONTHS");
-            setCurrDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-            setOrderNum("#0002");
-            window.localStorage.removeItem('checked');
-            window.localStorage.removeItem('initial');
-          }
+        // Fetch medium term data
+        setTopMedItems({
+          ...topMedItems,
+          topItems: data2.data.items,
+          currDur: getTotalDuration(data2.data.items.map((item) => item.duration_ms)),
         })
-        .catch((error) => {
-          console.log(error);
-        })
+        
+        // Fetch long term data
+        setTopLongItems(topLongItems => ({
+          ...topLongItems,
+          topItems: data3.data.items,
+          currDur: getTotalDuration(data3.data.items.map((item) => item.duration_ms)),
+        }))
 
-      axios.get("https://api.spotify.com/v1/me/top/tracks", {
-        headers: {
-          Authorization: 'Bearer ' + token,
-        },
-        params: {
-          time_range: 'long_term',
-          limit: 10,
-          offset: 0
-        }
-      })
-        .then((data) => {
-          console.log(data.data.items)
-          setTopLongItems(data.data.items);
-          setLongDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-          if (window.localStorage.getItem('initial') === '3') {
-            console.log('3');
-            setTopItems(data.data.items);
-            setTimeValue("ALL TIME");
-            setCurrDur(getTotalDuration(data.data.items.map((item) => item.duration_ms)));
-            setOrderNum("#0003");
-            window.localStorage.removeItem('checked');
-            window.localStorage.removeItem('initial');
+        // fetch user's name
+        setProfile(data4.data.display_name)
+        
+        // update button group after render
+        if (window.localStorage.getItem('checked') !== null) {
+          if (window.localStorage.getItem('checked') === '1') {
+            setSelectedValue(1);
+            setSelectedItems({
+              timeValue: "LAST MONTH",
+              orderNum: "0001",
+              topItems: data1.data.items,
+              currDur: getTotalDuration(data1.data.items.map((item) => item.duration_ms)),
+            });
+          } else if (window.localStorage.getItem('checked') === '2') {
+            setSelectedValue(2);
+            setSelectedItems({
+              timeValue: "LAST 6 MONTHS",
+              orderNum: "0002",
+              topItems: data2.data.items,
+              currDur: getTotalDuration(data2.data.items.map((item) => item.duration_ms)),
+            });
+          } else {
+            setSelectedValue(3);
+            setSelectedItems({
+              timeValue: "ALL TIME",
+              orderNum: "0003",
+              topItems: data3.data.items,
+              currDur: getTotalDuration(data3.data.items.map((item) => item.duration_ms)),
+            });
           }
-        })
-        .catch((error) => {
-          console.log(error);
-        })
+        } else {
+          setSelectedValue(1);
+          setSelectedItems({
+            timeValue: "LAST MONTH",
+            orderNum: "0001",
+            topItems: data1.data.items,
+            currDur: getTotalDuration(data1.data.items.map((item) => item.duration_ms)),
+          });
+        }
 
-      //fetching user's name
-      axios.get("https://api.spotify.com/v1/me", {
-        headers: {
-          Authorization: 'Bearer ' + token,
-        },
+        setIsLoading(false);
+      }))
+      .catch((error) => {
+        console.log(error);
+        setError(true);
       })
-        .then((data) => {
-          console.log(data.data)
-          setProfile(data.data.display_name)
-        })
-        .catch((error) => {
-          console.log(error);
-        })
     }
   }, [])
 
-  //Logout
-  const logout = () => {
-    setToken("")
-    window.localStorage.removeItem("token")
-    setTopItems([]);
+  if (error) {
+    return (
+      <>
+      <div>
+        <p style={{fontWeight: 'bold'}}>Looks like an error has occurred :(</p>
+        <p>Please try again later...Thank you!</p>
+      </div>
+      </>
+    )
   }
 
-  //Displays current date in a specific way
-  const getDate = () => {
-    const monthNames = ["January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"];
-    const weekNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const d = new Date();
-    setCurrDate(monthNames[d.getMonth()] + ", " + weekNames[d.getDay()] + " " + d.getDate() + ", " + d.getFullYear());
-  }
 
   return (
     <div className="App">
       <header>
-        <h1 style={{ fontWeight: 'bold' }}>Receiptify Clone</h1>
+        <h1 style={{fontWeight: 'bold'}}>Receiptify Clone</h1>
 
         {!token ?
           <div>
-            <div className="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+            <div className="btn-group" role="group" aria-label="Basic radio toggle button group">
               <input type="radio" className="btn-check" name="btnradio" id="btnradio1" autoComplete="off" defaultChecked />
-              <label onClick={() => {
-                window.localStorage.setItem('initial', '1');
-                window.localStorage.setItem('checked', '1');
-              }} className="btn btn-outline-primary" htmlFor="btnradio1">Last Month</label>
+              <label onClick={() => {window.localStorage.setItem('checked', '1')}} className="btn btn-outline-primary" htmlFor="btnradio1">Last Month</label>
 
               <input type="radio" className="btn-check" name="btnradio" id="btnradio2" autoComplete="off" />
-              <label onClick={() => {
-                window.localStorage.setItem('initial', '2');
-                window.localStorage.setItem('checked', '2');
-              }} className="btn btn-outline-primary" htmlFor="btnradio2">Last 6 Months</label>
+              <label onClick={() => {window.localStorage.setItem('checked', '2')}} className="btn btn-outline-primary" htmlFor="btnradio2">Last 6 Months</label>
 
               <input type="radio" className="btn-check" name="btnradio" id="btnradio3" autoComplete="off" />
-              <label onClick={() => {
-                window.localStorage.setItem('initial', '3');
-                window.localStorage.setItem('checked', '3');
-              }} className="btn btn-outline-primary" htmlFor="btnradio3">All Time</label>
+              <label onClick={() => {window.localStorage.setItem('checked', '3')}} className="btn btn-outline-primary" htmlFor="btnradio3">All Time</label>
             </div>
           </div>
           : null}
 
-        {token ?
+        {token && isLoading === false ?
           <div>
-            <div className="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-              <input type="radio" className="btn-check" name="btnradio" id="btnradio1" autoComplete="off" readOnly checked={window.localStorage.getItem('checked') === '1' ? 'checked' : null} />
+            <div className="btn-group" role="group" aria-label="Basic radio toggle button group">
+              <input type="radio" className="btn-check" name="btnradio" id="btnradio1" autoComplete="off" readOnly checked={selectedValue === 1 ? true : false} />
               <label onClick={() => {
-                setTopItems(topShortItems);
-                setTimeValue("LAST MONTH");
-                setCurrDur(shortDur);
-                setOrderNum("#0001");
+                setSelectedValue(1);
+                setSelectedItems(topShortItems);
               }} className="btn btn-outline-primary" htmlFor="btnradio1">Last Month</label>
 
-              <input type="radio" className="btn-check" name="btnradio" id="btnradio2" autoComplete="off" readOnly checked={window.localStorage.getItem('checked') === '2' ? 'checked' : null} />
+              <input type="radio" className="btn-check" name="btnradio" id="btnradio2" autoComplete="off" readOnly checked={selectedValue === 2 ? true : false} />
               <label onClick={() => {
-                setTopItems(topMedItems);
-                setTimeValue("LAST 6 MONTHS");
-                setCurrDur(medDur);
-                setOrderNum("#0002");
+                setSelectedValue(2);
+                setSelectedItems(topMedItems);
               }} className="btn btn-outline-primary" htmlFor="btnradio2">Last 6 Months</label>
 
-              <input type="radio" className="btn-check" name="btnradio" id="btnradio3" autoComplete="off" readOnly checked={window.localStorage.getItem('checked') === '3' ? 'checked' : null} />
+              <input type="radio" className="btn-check" name="btnradio" id="btnradio3" autoComplete="off" readOnly checked={selectedValue === 3 ? true : false} />
               <label onClick={() => {
-                setTopItems(topLongItems);
-                setTimeValue("ALL TIME");
-                setCurrDur(longDur);
-                setOrderNum("#0003");
+                setSelectedValue(3);
+                setSelectedItems(topLongItems);
               }} className="btn btn-outline-primary" htmlFor="btnradio3">All Time</label>
             </div>
           </div>
           : null}
 
         <br></br>
-        {/* <button onClick={() => {
-          setTopItems(topShortItems);
-          setTimeValue("LAST MONTH");
-          setCurrDur(shortDur);
-          setOrderNum("#0001")}}>Last Month</button>
-        <button onClick={() => {
-          setTopItems(topMedItems);
-          setTimeValue("LAST 6 MONTHS");
-          setCurrDur(medDur);
-          setOrderNum("#0002")}}>Last 6 Month</button>
-        <button onClick={() => {
-          setTopItems(topLongItems);
-          setTimeValue("ALL TIME");
-          setCurrDur(longDur);
-          setOrderNum("#0003");}}>All Time</button> */}
 
-        {token ?
+        {token && isLoading === false ?
           <div style={{ marginBottom: '50px' }}>
             <div className='background' style={{ overflow: 'auto', margin: 'auto', position: 'relative', width: 350 }}>
 
               <div style={{ textAlign: 'center', color: "black", width: 300, margin: 'auto', }}>
                 <div style={{ fontWeight: 'bold', fontSize: '25px' }}> RECEIPTIFY CLONE </div>
-                <div style={{ fontWeight: 'normal', fontSize: '15px', marginBottom: '20px' }}>{timeValue}</div>
+                <div style={{ fontWeight: 'normal', fontSize: '15px', marginBottom: '20px' }}>{selectedItems.timeValue}</div>
               </div>
 
               <div className="font-face-mc" style={{ textAlign: 'left', color: "black", width: 300, margin: 'auto', }}>
                 <div>
-                  ORDER {orderNum} FOR {profile.toUpperCase()} <br></br>
+                  ORDER {selectedItems.orderNum} FOR {profile.toUpperCase()} <br></br>
                   {currDate.toUpperCase()}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTopStyle: 'dashed', borderBottomStyle: 'dashed' }}>
@@ -274,11 +278,11 @@ function App() {
                     AMT
                   </div>
                 </div>
-                {topItems ?
-                  topItems.map((item, index) => (
+                {selectedItems.topItems ?
+                  selectedItems.topItems.map((item, index) => (
                     <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <div style={{ marginRight: 10 }}>
-                        {(index + 1) != 10 ? '0' + (index + 1) : index + 1}
+                        {(index + 1) !== 10 ? '0' + (index + 1) : index + 1}
                       </div>
                       <div style={{ marginLeft: '10px', textAlign: 'left', flexGrow: '1', paddingRight: 20 }}>
                         {item.name.toUpperCase()} - {item.artists[0].name.toUpperCase()}
@@ -295,7 +299,7 @@ function App() {
                     ITEM COUNT: <br /> TOTAL:
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    10 <br /> {currDur}
+                    10 <br /> {selectedItems.currDur}
                   </div>
                 </div>
                 <div>

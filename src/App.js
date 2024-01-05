@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 function App() {
   const CLIENT_ID = process.env.REACT_APP_API_KEY;
-  const REDIRECT_URI = "http://localhost:3000/";
+  const REDIRECT_URI = "http://vannesschia.github.io/Receiptify_Clone";
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
   const RESPONSE_TYPE = "token";
 
